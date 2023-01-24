@@ -1,0 +1,42 @@
+#!/bin/bash
+Red='\033[1;31m'
+Clean='\033[0m'
+Green='\033[1;32m'
+Yellow='\033[1;33m'
+echo ''
+echo ''
+echo -e "${Yellow}Pacman cleaner by ${Green}@elliottophellia${Clean}"
+echo -e "${Yellow}Works only for Arch-based distros (${Red}obviously${Yellow})${Clean}"
+echo ''
+echo ''
+echo -e "${Green}Check if pacman-contrib is installed.${Clean}"
+if pacman -Qi pacman-contrib > /dev/null ; then
+   echo -e "${Green}pacman-contrib is installed, continue...${Clean}"
+else
+   echo -e "${Red}pacman-contrib is not installed, installing pacman-contrib...${Clean}"
+   sudo pacman -S pacman-contrib
+fi
+echo -e "${Green}Removes old packages from the pacman cache directory.${Clean}"
+paccache -ruk0
+echo -e "${Green}Remove all pkg except those installed.${Clean}"
+sudo pacman -Sc
+echo -e "${Green}Remove unused packages."
+sudo pacman -Rcns $(pacman -Qtdq)
+echo -e "${Green}Delete everything in your .cache that was last accessed more than a 2 months ago.${Clean}"
+find ~/.cache/ -type f -atime +60 -delete
+echo -e "${Green}Check if rmlint is installed.${Clean}"
+if pacman -Qi rmlint > /dev/null ; then
+   echo -e "${Green}rmlint is installed, continue...${Clean}"
+else
+   echo -e "${Red}rmlint is not installed, installing rmlint...${Clean}"
+   sudo pacman -S rmlint
+fi
+echo -e "${Green}Remove duplicates, empty files, empty directories and broken symlinks.${Clean}"
+rmlint /home/$(echo $USER)
+chmod +x rmlint.sh
+./rmlint.sh
+echo -e "${Green}Clean Systemd Journal${Clean}"
+sudo journalctl --vacuum-size=50M
+echo ''
+echo ''
+echo -e "${Green}Everything is done! Enjoy.${Clean}"
